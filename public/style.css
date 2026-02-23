@@ -4,7 +4,7 @@ body{
     margin:0;
     background: radial-gradient(circle at 50% 20%, #0a0f1f 0%, #02040a 60%, #000 100%);
     font-family:'Orbitron',sans-serif;
-    color:white;
+    color:black;
     text-align:center;
     overflow:hidden;
 }
@@ -198,3 +198,4 @@ input{
     0%{opacity:1; transform:translate(0,0) scale(1);}
     100%{opacity:0; transform:translate(var(--x),var(--y)) scale(0.2);}
 }
+
