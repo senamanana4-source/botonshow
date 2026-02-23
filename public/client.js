@@ -3,7 +3,7 @@ const socket = io();
 let username;
 let locked=false;
 
-// entrar
+/* entrar */
 function enter(){
 
     username=document.getElementById("nameInput").value.trim();
@@ -15,7 +15,7 @@ function enter(){
     socket.emit("join",username);
 }
 
-// actualizar usuarios
+/* actualizar usuarios */
 socket.on("usersUpdate",(users)=>{
 
     const container=document.getElementById("buttons");
@@ -38,13 +38,17 @@ socket.on("usersUpdate",(users)=>{
     });
 });
 
-// presionar
+/* presionar */
 function press(){
     if(locked) return;
+
+    const myButton=[...document.getElementsByClassName("mine")][0];
+    if(myButton) starExplosion(myButton);
+
     socket.emit("pressButton");
 }
 
-// turno inicia
+/* turno inicia */
 socket.on("turnStarted",(data)=>{
 
     locked=true;
@@ -59,12 +63,12 @@ socket.on("turnStarted",(data)=>{
     }
 });
 
-// contador
+/* contador */
 socket.on("countdown",(time)=>{
     document.getElementById("timer").innerText=" "+time;
 });
 
-// turno termina
+/* turno termina */
 socket.on("turnEnded",()=>{
 
     locked=false;
@@ -77,7 +81,37 @@ socket.on("turnEnded",()=>{
     }
 });
 
-// cola
+/* cola automática */
 socket.on("autoPress",()=>{
     socket.emit("pressButton");
 });
+
+/* -------- EXPLOSION DE ESTRELLAS -------- */
+
+function starExplosion(element){
+
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+
+    for(let i=0;i<28;i++){
+
+        const star=document.createElement("div");
+        star.className="star";
+
+        const angle=Math.random()*Math.PI*2;
+        const distance=80+Math.random()*140;
+
+        const x=Math.cos(angle)*distance+"px";
+        const y=Math.sin(angle)*distance+"px";
+
+        star.style.left=centerX+"px";
+        star.style.top=centerY+"px";
+        star.style.setProperty("--x",x);
+        star.style.setProperty("--y",y);
+
+        document.body.appendChild(star);
+
+        setTimeout(()=>star.remove(),900);
+    }
+}
