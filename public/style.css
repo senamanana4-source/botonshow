@@ -1,0 +1,56 @@
+body{
+    margin:0;
+    background:#111;
+    font-family:Arial;
+    color:white;
+    text-align:center;
+    overflow:hidden;
+}
+
+#centerName{
+    position:fixed;
+    top:40%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:80px;
+    pointer-events:none;
+}
+
+#buttons{
+    position:fixed;
+    top:60%;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:row;
+    gap:20px;
+}
+
+.btn{
+    width:180px;
+    height:70px;
+    font-size:20px;
+    border:none;
+    color:white;
+    background:#700000;
+    cursor:not-allowed;
+    transition:0.2s;
+}
+
+.mine{
+    background:red;
+    cursor:pointer;
+}
+
+.green{
+    background:green !important;
+}
+
+.disabled{
+    opacity:0.5;
+}
+#timer{
+    font-size:60px;
+    margin-left:20px;
+    color:yellow;
+}
