@@ -13,6 +13,7 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, "public")));
 
 let users = {};
+let userPressCount = {}; // Contador de pulsaciones por usuario
 let activeUser = null;
 let waitingQueue = [];
 let countdownInterval = null;
@@ -22,15 +23,22 @@ let openCountdown = 0;
 let openCountdownInterval = null;
 let customDuration = 15;
 let openDuration = 10;
+let roundStarter = null; // Quién inició la ronda
 
 function broadcastUsers(){
     io.emit("usersUpdate", Object.values(users));
 }
 
-function startOpenPhase(){
+function broadcastPressCount(){
+    io.emit("pressCountUpdate", userPressCount);
+}
+
+function startOpenPhase(initiator){
     gamePhase = "open";
+    roundStarter = initiator;
     openCountdown = openDuration;
-    io.emit("openPhase", { time: openCountdown });
+    userPressCount = {}; // Resetear contadores
+    io.emit("openPhase", { time: openCountdown, starter: initiator });
 
     openCountdownInterval = setInterval(()=>{
         openCountdown--;
@@ -89,10 +97,17 @@ io.on("connection", (socket)=>{
 
     socket.on("startOpenPhase", ()=>{
         if(gamePhase !== "waiting") return;
-        startOpenPhase();
+        startOpenPhase(socket.username);
     });
 
     socket.on("pressButton", ()=>{
+        // Incrementar contador de pulsaciones
+        if(!userPressCount[socket.username]){
+            userPressCount[socket.username] = 0;
+        }
+        userPressCount[socket.username]++;
+        broadcastPressCount();
+
         if(gamePhase === "open"){
             if(!activeUser){
                 startTurn(socket.username);
