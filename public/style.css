@@ -251,6 +251,12 @@ input {
 #buttons .btn:nth-child(6n+6) { background: linear-gradient(145deg, #104020, #186030); border-color: #44ff99; color: #ccffdd; box-shadow: 0 0 20px rgba(60,255,150,0.6); text-shadow: 0 0 8px rgba(60,255,150,0.8); }
 
 /* Contador de pulsaciones */
+.player-name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
 .press-count {
     font-size: 20px;
     font-weight: 900;
