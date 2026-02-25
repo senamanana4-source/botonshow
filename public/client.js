@@ -4,6 +4,7 @@ let username;
 let locked = false;
 let gamePhase = "waiting";
 let pressCount = {}; // Contadores de pulsaciones
+let userAnswers = {}; // Respuestas seleccionadas
 let roundStarter = null; // Quién inició la ronda
 
 function enter(){
@@ -26,6 +27,28 @@ socket.on("pressCountUpdate", (counts)=>{
     updateButtonsDisplay();
 });
 
+socket.on("answersUpdate", (answers)=>{
+    userAnswers = answers;
+    updateAnswersDisplay();
+});
+
+function updateAnswersDisplay(){
+    const buttons = document.getElementsByClassName("btn");
+    for(let btn of buttons){
+        const playerName = btn.getAttribute("data-name");
+        const answerSpan = btn.querySelector(".answer-display");
+        
+        if(answerSpan){
+            if(userAnswers[playerName]){
+                answerSpan.innerText = userAnswers[playerName];
+                answerSpan.style.display = "block";
+            } else {
+                answerSpan.style.display = "none";
+            }
+        }
+    }
+}
+
 function updateButtonsDisplay(){
     const buttons = document.getElementsByClassName("btn");
     for(let btn of buttons){
@@ -34,6 +57,12 @@ function updateButtonsDisplay(){
         
         if(pressCount[playerName]){
             btnHTML += `<div class="press-count">${pressCount[playerName]}</div>`;
+        }
+
+        if(userAnswers[playerName]){
+            btnHTML += `<div class="answer-display">${userAnswers[playerName]}</div>`;
+        } else {
+            btnHTML += `<div class="answer-display" style="display:none;"></div>`;
         }
         
         btn.innerHTML = btnHTML;
@@ -52,6 +81,11 @@ socket.on("usersUpdate", (users)=>{
         let btnHTML = `<div class="player-name">${name}</div>`;
         if(pressCount[name]){
             btnHTML += `<div class="press-count">${pressCount[name]}</div>`;
+        }
+        if(userAnswers[name]){
+            btnHTML += `<div class="answer-display">${userAnswers[name]}</div>`;
+        } else {
+            btnHTML += `<div class="answer-display" style="display:none;"></div>`;
         }
         btn.innerHTML = btnHTML;
 
@@ -100,6 +134,7 @@ function updatePhaseUI(){
         }
         locked = false;
         if(myBtn){ myBtn.classList.remove("btn-open"); myBtn.style.opacity="0.5"; myBtn.style.cursor="not-allowed"; }
+        hideOptions();
     } else if(gamePhase === "open"){
         if(adminPanel) adminPanel.style.display = "none";
         if(starterDisplay && roundStarter){
@@ -109,6 +144,7 @@ function updatePhaseUI(){
         if(phaseMsg){ phaseMsg.innerText = "¡PRESIONA AHORA!"; phaseMsg.style.display = "block"; }
         locked = false;
         if(myBtn){ myBtn.classList.add("btn-open"); myBtn.style.opacity="1"; myBtn.style.cursor="pointer"; }
+        hideOptions();
     } else if(gamePhase === "turn"){
         if(adminPanel) adminPanel.style.display = "none";
         if(starterDisplay) starterDisplay.style.display = "none";
@@ -121,6 +157,7 @@ socket.on("openPhase", (data)=>{
     gamePhase = "open";
     roundStarter = data.starter;
     pressCount = {}; // Resetear contadores
+    userAnswers = {}; // Resetear respuestas
     document.getElementById("openTimer").style.display = "block";
     document.getElementById("openTimerVal").innerText = data.time;
     
@@ -135,6 +172,7 @@ socket.on("openPhase", (data)=>{
     }
     
     updatePhaseUI();
+    updateButtonsDisplay();
 });
 
 socket.on("openCountdown", (time)=>{
@@ -163,6 +201,28 @@ socket.on("turnStarted", (data)=>{
     updatePhaseUI();
 });
 
+socket.on("showOptions", (data)=>{
+    // Mostrar opciones si eres el jugador activo
+    if(username === data.player){
+        showOptions();
+    }
+});
+
+function showOptions(){
+    const optionsContainer = document.getElementById("optionsContainer");
+    if(optionsContainer) optionsContainer.style.display = "flex";
+}
+
+function hideOptions(){
+    const optionsContainer = document.getElementById("optionsContainer");
+    if(optionsContainer) optionsContainer.style.display = "none";
+}
+
+function selectOption(option){
+    socket.emit("selectOption", { option: option });
+    hideOptions();
+}
+
 socket.on("countdown", (time)=>{
     document.getElementById("timer").innerText = " " + time;
 });
@@ -179,6 +239,7 @@ socket.on("turnEnded", ()=>{
         b.classList.remove("btn-open");
     }
     updatePhaseUI();
+    hideOptions();
 });
 
 socket.on("autoPress", ()=>{
