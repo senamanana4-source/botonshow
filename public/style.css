@@ -135,6 +135,24 @@ input {
     to { transform: scale(1.05); }
 }
 
+/* STARTER DISPLAY */
+#starterDisplay {
+    position: fixed;
+    top: 5%;
+    right: 30px;
+    font-size: 18px;
+    color: #ffd700;
+    background: rgba(0, 50, 20, 0.8);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 12px 20px;
+    z-index: 30;
+    display: none;
+    text-shadow: 0 0 10px #ffd700;
+    letter-spacing: 2px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
 /* OPEN TIMER */
 #openTimer {
     position: fixed;
@@ -203,7 +221,7 @@ input {
 
 .btn {
     width: 160px;
-    height: 70px;
+    min-height: 70px;
     font-size: 15px;
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 12px;
@@ -215,6 +233,13 @@ input {
     font-family: 'Orbitron';
     font-weight: 600;
     letter-spacing: 1px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
 /* Colores distintos por posición - vibrantes y visibles */
@@ -224,6 +249,20 @@ input {
 #buttons .btn:nth-child(6n+4) { background: linear-gradient(145deg, #005060, #007080); border-color: #00eeff; color: #aaffff; box-shadow: 0 0 20px rgba(0,230,255,0.6); text-shadow: 0 0 8px rgba(0,230,255,0.8); }
 #buttons .btn:nth-child(6n+5) { background: linear-gradient(145deg, #401060, #581880); border-color: #dd55ff; color: #f0bbff; box-shadow: 0 0 20px rgba(220,80,255,0.6); text-shadow: 0 0 8px rgba(220,80,255,0.8); }
 #buttons .btn:nth-child(6n+6) { background: linear-gradient(145deg, #104020, #186030); border-color: #44ff99; color: #ccffdd; box-shadow: 0 0 20px rgba(60,255,150,0.6); text-shadow: 0 0 8px rgba(60,255,150,0.8); }
+
+/* Contador de pulsaciones */
+.press-count {
+    font-size: 20px;
+    font-weight: 900;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid currentColor;
+}
 
 .btn.mine {
     opacity: 0.65;
