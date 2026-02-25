@@ -3,6 +3,8 @@ const socket = io();
 let username;
 let locked = false;
 let gamePhase = "waiting";
+let pressCount = {}; // Contadores de pulsaciones
+let roundStarter = null; // Quién inició la ronda
 
 function enter(){
     username = document.getElementById("nameInput").value.trim();
@@ -19,10 +21,24 @@ socket.on("gameState", (data)=>{
     updatePhaseUI();
 });
 
-socket.on("durationsUpdated", (data)=>{
-    document.getElementById("turnDurationInput").value = data.customDuration;
-    document.getElementById("openDurationInput").value = data.openDuration;
+socket.on("pressCountUpdate", (counts)=>{
+    pressCount = counts;
+    updateButtonsDisplay();
 });
+
+function updateButtonsDisplay(){
+    const buttons = document.getElementsByClassName("btn");
+    for(let btn of buttons){
+        const playerName = btn.innerText.split('\n')[0]; // Obtener solo el nombre
+        let btnHTML = playerName;
+        
+        if(pressCount[playerName]){
+            btnHTML += `<div class="press-count">${pressCount[playerName]}</div>`;
+        }
+        
+        btn.innerHTML = btnHTML;
+    }
+}
 
 socket.on("usersUpdate", (users)=>{
     const container = document.getElementById("buttons");
@@ -31,7 +47,12 @@ socket.on("usersUpdate", (users)=>{
     users.forEach(name => {
         const btn = document.createElement("button");
         btn.className = "btn";
-        btn.innerText = name;
+        
+        let btnHTML = name;
+        if(pressCount[name]){
+            btnHTML += `<div class="press-count">${pressCount[name]}</div>`;
+        }
+        btn.innerHTML = btnHTML;
 
         if(name === username){
             btn.classList.add("mine");
@@ -60,9 +81,11 @@ function updatePhaseUI(){
     const adminPanel = document.getElementById("adminPanel");
     const phaseMsg = document.getElementById("phaseMessage");
     const myBtn = [...document.getElementsByClassName("mine")][0];
+    const starterDisplay = document.getElementById("starterDisplay");
 
     if(gamePhase === "waiting"){
         if(adminPanel) adminPanel.style.display = "flex";
+        if(starterDisplay) starterDisplay.style.display = "none";
         if(phaseMsg){
             phaseMsg.innerText = "Esperando para iniciar...";
             phaseMsg.style.display = "block";
@@ -71,11 +94,16 @@ function updatePhaseUI(){
         if(myBtn){ myBtn.classList.remove("btn-open"); myBtn.style.opacity="0.5"; myBtn.style.cursor="not-allowed"; }
     } else if(gamePhase === "open"){
         if(adminPanel) adminPanel.style.display = "none";
+        if(starterDisplay && roundStarter){
+            starterDisplay.innerText = `🎬 ${roundStarter}`;
+            starterDisplay.style.display = "block";
+        }
         if(phaseMsg){ phaseMsg.innerText = "¡PRESIONA AHORA!"; phaseMsg.style.display = "block"; }
         locked = false;
         if(myBtn){ myBtn.classList.add("btn-open"); myBtn.style.opacity="1"; myBtn.style.cursor="pointer"; }
     } else if(gamePhase === "turn"){
         if(adminPanel) adminPanel.style.display = "none";
+        if(starterDisplay) starterDisplay.style.display = "none";
         if(phaseMsg){ phaseMsg.style.display = "none"; }
         if(myBtn){ myBtn.classList.remove("btn-open"); }
     }
@@ -83,6 +111,8 @@ function updatePhaseUI(){
 
 socket.on("openPhase", (data)=>{
     gamePhase = "open";
+    roundStarter = data.starter;
+    pressCount = {}; // Resetear contadores
     document.getElementById("openTimer").style.display = "block";
     document.getElementById("openTimerVal").innerText = data.time;
     updatePhaseUI();
