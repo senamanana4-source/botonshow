@@ -29,8 +29,8 @@ socket.on("pressCountUpdate", (counts)=>{
 function updateButtonsDisplay(){
     const buttons = document.getElementsByClassName("btn");
     for(let btn of buttons){
-        const playerName = btn.innerText.split('\n')[0]; // Obtener solo el nombre
-        let btnHTML = playerName;
+        const playerName = btn.getAttribute("data-name");
+        let btnHTML = `<div class="player-name">${playerName}</div>`;
         
         if(pressCount[playerName]){
             btnHTML += `<div class="press-count">${pressCount[playerName]}</div>`;
@@ -47,8 +47,9 @@ socket.on("usersUpdate", (users)=>{
     users.forEach(name => {
         const btn = document.createElement("button");
         btn.className = "btn";
+        btn.setAttribute("data-name", name); // Guardar nombre en atributo
         
-        let btnHTML = name;
+        let btnHTML = `<div class="player-name">${name}</div>`;
         if(pressCount[name]){
             btnHTML += `<div class="press-count">${pressCount[name]}</div>`;
         }
@@ -122,6 +123,17 @@ socket.on("openPhase", (data)=>{
     pressCount = {}; // Resetear contadores
     document.getElementById("openTimer").style.display = "block";
     document.getElementById("openTimerVal").innerText = data.time;
+    
+    // Mostrar starterDisplay por 5 segundos
+    const starterDisplay = document.getElementById("starterDisplay");
+    if(starterDisplay){
+        starterDisplay.innerText = `🎬 ${roundStarter}`;
+        starterDisplay.style.display = "block";
+        setTimeout(() => {
+            if(gamePhase === "open") starterDisplay.style.display = "none";
+        }, 5000);
+    }
+    
     updatePhaseUI();
 });
 
@@ -146,7 +158,7 @@ socket.on("turnStarted", (data)=>{
 
     const buttons = document.getElementsByClassName("btn");
     for(let b of buttons){
-        if(b.innerText === data.user) b.classList.add("green");
+        if(b.getAttribute("data-name") === data.user) b.classList.add("green");
     }
     updatePhaseUI();
 });
