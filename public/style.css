@@ -1,26 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&display=swap');
 
-/* --- CONFIGURACIÓN GLOBAL --- */
 body {
     margin: 0;
     padding: 0;
-    /* Fondo ultra oscuro con profundidad */
-    background: radial-gradient(circle at 50% 20%, #001a1a 0%, #000805 60%, #000000 100%);
+    background: radial-gradient(circle at 50% 20%, #001a08 0%, #000f04 60%, #000000 100%);
     font-family: 'Orbitron', sans-serif;
-    color: #e0f7ff; /* Texto claro por defecto */
+    color: #e0fff0;
     text-align: center;
-    overflow: hidden; /* Evita el scroll global de la página */
+    overflow: hidden;
     height: 100vh;
     width: 100vw;
 }
 
-/* --- ILUMINACIÓN AMBIENTE (NEONES MOVIÉNDOSE) --- */
 .overlay-bg {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
     z-index: 0;
 }
@@ -29,79 +24,76 @@ body {
 .overlay-bg::after {
     content: "";
     position: absolute;
-    width: 500px;
-    height: 500px;
+    width: 500px; height: 500px;
     border-radius: 50%;
     filter: blur(120px);
     opacity: 0.15;
 }
 
 .overlay-bg::before {
-    background: #00d0ff;
-    left: -100px;
-    top: 10%;
+    background: #00ff88;
+    left: -100px; top: 10%;
     animation: lightMove 10s infinite alternate ease-in-out;
 }
 
 .overlay-bg::after {
-    background: #0044ff;
-    right: -100px;
-    top: 40%;
+    background: #004422;
+    right: -100px; top: 40%;
     animation: lightMove2 12s infinite alternate ease-in-out;
 }
 
 @keyframes lightMove { from { transform: translateY(-50px); } to { transform: translateY(100px); } }
 @keyframes lightMove2 { from { transform: translateY(100px); } to { transform: translateY(-100px); } }
 
-/* --- CARD DE LOGIN --- */
+/* LOGIN */
 .card {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(5, 12, 30, 0.95);
+    background: rgba(0, 15, 5, 0.95);
     padding: 40px;
     border-radius: 20px;
-    border: 1px solid rgba(0, 200, 255, 0.3);
-    box-shadow: 0 0 50px rgba(0, 150, 255, 0.2);
+    border: 1px solid rgba(0, 255, 100, 0.3);
+    box-shadow: 0 0 50px rgba(0, 180, 80, 0.2);
     z-index: 100;
 }
 
 .title {
     font-size: 36px;
-    color: #7be7ff;
-    text-shadow: 0 0 15px #00c8ff;
+    color: #7bffbe;
+    text-shadow: 0 0 15px #00ff88;
     margin-bottom: 10px;
 }
 
 .subtitle {
-    color: #8ae8ff;
+    color: #8affcc;
     opacity: 0.7;
     margin-bottom: 25px;
     font-size: 14px;
 }
 
-/* --- FORMULARIO --- */
 input {
     padding: 15px;
     width: 250px;
     font-size: 16px;
-    border: 1px solid #0044ff;
+    border: 1px solid #00aa44;
     border-radius: 10px;
     text-align: center;
     margin-bottom: 20px;
-    background: #060b1a;
+    background: #000e03;
     color: white;
     outline: none;
-    box-shadow: 0 0 10px rgba(0, 68, 255, 0.5) inset;
+    box-shadow: 0 0 10px rgba(0, 170, 68, 0.5) inset;
 }
 
 .enter-btn {
+    display: block;
+    margin: 0 auto;
     padding: 12px 35px;
     font-size: 18px;
     border: none;
     border-radius: 30px;
-    background: linear-gradient(90deg, #0066ff, #00c8ff);
+    background: linear-gradient(90deg, #006622, #00cc66);
     color: white;
     cursor: pointer;
     transition: 0.3s;
@@ -110,13 +102,13 @@ input {
 
 .enter-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 25px #00c8ff;
+    box-shadow: 0 0 25px #00ff88;
 }
 
-/* --- ELEMENTOS DEL JUEGO (NOMBRE Y TIMER) --- */
+/* ESCENARIO */
 #centerName {
     position: fixed;
-    top: 20%;
+    top: 18%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
@@ -127,7 +119,7 @@ input {
 .speaker {
     font-size: 60px;
     color: #fff;
-    text-shadow: 0 0 10px #00c8ff, 0 0 30px #00c8ff;
+    text-shadow: 0 0 10px #00ff88, 0 0 30px #00ff88;
     animation: pulse 1.5s infinite alternate;
 }
 
@@ -143,10 +135,56 @@ input {
     to { transform: scale(1.05); }
 }
 
-/* --- CONTENEDOR DE BOTONES (OTROS PARTICIPANTES) --- */
+/* OPEN TIMER */
+#openTimer {
+    position: fixed;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    text-align: center;
+}
+
+.open-label {
+    font-size: 16px;
+    color: #00ff88;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px #00ff88;
+    margin-bottom: 4px;
+    animation: blink 0.8s infinite alternate;
+}
+
+@keyframes blink {
+    from { opacity: 1; }
+    to { opacity: 0.4; }
+}
+
+.open-countdown {
+    font-size: 90px;
+    font-weight: 900;
+    color: #00ff88;
+    text-shadow: 0 0 30px #00ff88, 0 0 60px #00ff88;
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+/* PHASE MESSAGE */
+.phase-message {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    color: #aaffcc;
+    letter-spacing: 4px;
+    z-index: 10;
+    display: none;
+}
+
+/* BUTTONS */
 #buttons {
     position: fixed;
-    top: 55%;
+    top: 50%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -154,47 +192,56 @@ input {
     gap: 15px;
     justify-content: center;
     width: 90%;
-    max-height: 40vh; /* Para que no se salgan de la pantalla */
-    overflow-y: auto; /* Permite scroll si hay muchos jugadores */
+    max-height: 35vh;
+    overflow-y: auto;
     padding: 20px;
     z-index: 20;
 }
 
-/* Estilo para el scrollbar de los botones */
 #buttons::-webkit-scrollbar { width: 5px; }
-#buttons::-webkit-scrollbar-thumb { background: #00c8ff; border-radius: 10px; }
+#buttons::-webkit-scrollbar-thumb { background: #00ff88; border-radius: 10px; }
 
-/* --- BOTONES DE JUGADORES --- */
 .btn {
     width: 160px;
     height: 70px;
     font-size: 16px;
-    border: 1px solid rgba(0, 150, 255, 0.2);
+    border: 1px solid rgba(0, 200, 100, 0.2);
     border-radius: 12px;
-    color: rgba(255, 255, 255, 0.4); /* Otros jugadores se ven más tenues */
-    background: rgba(10, 20, 45, 0.6);
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 20, 8, 0.6);
     transition: all 0.2s ease;
     cursor: not-allowed;
     position: relative;
     font-family: 'Orbitron';
 }
 
-/* --- TU BOTÓN (EL ACTIVO) --- */
 .btn.mine {
+    cursor: not-allowed;
+    color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(0, 200, 100, 0.4);
+    background: linear-gradient(145deg, #051a0d, #0a2e16);
+    box-shadow: 0 0 10px rgba(0, 150, 60, 0.2);
+    opacity: 0.5;
+}
+
+.btn.mine.btn-open {
     cursor: pointer;
     color: #fff;
-    border: 1px solid #00c8ff;
-    background: linear-gradient(145deg, #0d1e4a, #162a5a);
-    box-shadow: 0 0 20px rgba(0, 150, 255, 0.4);
-    opacity: 1; /* Siempre visible */
+    opacity: 1;
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
+    animation: readyPulse 0.8s infinite alternate;
 }
 
-.btn.mine:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
+@keyframes readyPulse {
+    from { box-shadow: 0 0 15px rgba(0,255,136,0.4); }
+    to { box-shadow: 0 0 40px rgba(0,255,136,0.9), 0 0 60px rgba(0,255,136,0.4); }
 }
 
-/* --- ESTADO GANADOR / ACTIVO --- */
+.btn.mine.btn-open:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
 .green {
     background: linear-gradient(145deg, #00ff88, #00ffaa) !important;
     color: #000 !important;
@@ -208,18 +255,117 @@ input {
     to { filter: brightness(1.4); }
 }
 
-/* --- ESTADO DESACTIVADO --- */
 .disabled {
-    opacity: 0.3; /* Aumentado de 0.15 para que se vean un poco más */
+    opacity: 0.25;
     filter: grayscale(0.8);
 }
 
-/* --- EFECTO DE ESTRELLAS/PARTÍCULAS --- */
+/* ADMIN PANEL */
+.admin-panel {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 15, 6, 0.92);
+    border: 1px solid rgba(0, 200, 80, 0.35);
+    border-radius: 16px;
+    padding: 20px 30px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 0 30px rgba(0,180,60,0.2);
+    min-width: 320px;
+}
+
+.admin-title {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: #00ff88;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.admin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+}
+
+.admin-row label {
+    font-size: 11px;
+    color: #aaffcc;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    text-align: left;
+    flex: 1;
+}
+
+.admin-row input {
+    width: 70px;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #006633;
+    border-radius: 8px;
+    background: #000e03;
+    color: #00ff88;
+    text-align: center;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.admin-btn {
+    padding: 10px 24px;
+    font-size: 13px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: 'Orbitron';
+    transition: 0.2s;
+    letter-spacing: 2px;
+    width: 100%;
+}
+
+.save-btn {
+    background: rgba(0, 80, 30, 0.8);
+    color: #aaffcc;
+    border: 1px solid #005522;
+}
+
+.save-btn:hover {
+    background: rgba(0, 120, 50, 0.9);
+}
+
+.start-btn {
+    background: linear-gradient(90deg, #006622, #00cc55);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0,200,80,0.4);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.start-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 35px rgba(0,255,100,0.6);
+}
+
+.saved-msg {
+    font-size: 11px;
+    color: #00ff88;
+    opacity: 0;
+    transition: opacity 0.3s;
+    letter-spacing: 2px;
+}
+
+/* STARS */
 .star {
     position: absolute;
     width: 4px;
     height: 4px;
-    background: #00c8ff;
+    background: #00ff88;
     border-radius: 50%;
     pointer-events: none;
     z-index: 5;
