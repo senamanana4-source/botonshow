@@ -1,202 +1,205 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&display=swap');
 
-body{
-    margin:0;
-    background: radial-gradient(circle at 50% 20%, #001a10 0%, #000805 60%, #000000 100%);
-    font-family:'Orbitron',sans-serif;
-    color:black;
-    text-align:center;
-    overflow:hidden;
+body {
+    margin: 0;
+    /* Un fondo más profundo para que el neón resalte */
+    background: radial-gradient(circle at 50% 20%, #000d08 0%, #000402 60%, #000000 100%);
+    font-family: 'Orbitron', sans-serif;
+    /* CORRECCIÓN: Texto claro sobre fondo oscuro */
+    color: #e0f7ff; 
+    text-align: center;
+    overflow: hidden;
+    height: 100vh;
 }
 
-/* iluminación ambiente */
-.overlay-bg{
-    position:fixed;
-    width:100%;
-    height:100%;
-    pointer-events:none;
+/* Iluminación ambiente mejorada */
+.overlay-bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
 }
 
 .overlay-bg::before,
-.overlay-bg::after{
-    content:"";
-    position:absolute;
-    width:600px;
-    height:600px;
-    border-radius:50%;
-    filter:blur(120px);
-    opacity:0.18;
+.overlay-bg::after {
+    content: "";
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.12; /* Un poco más sutil para no lavar los colores */
 }
 
-.overlay-bg::before{
-    background:#00d0ff;
-    left:-150px;
-    top:10%;
-    animation:lightMove 10s infinite alternate ease-in-out;
+.overlay-bg::before {
+    background: #00d0ff;
+    left: -150px;
+    top: 10%;
+    animation: lightMove 10s infinite alternate ease-in-out;
 }
 
-.overlay-bg::after{
-    background:#0044ff;
-    right:-150px;
-    top:40%;
-    animation:lightMove2 12s infinite alternate ease-in-out;
+.overlay-bg::after {
+    background: #0044ff;
+    right: -150px;
+    top: 40%;
+    animation: lightMove2 12s infinite alternate ease-in-out;
 }
 
-@keyframes lightMove{
-    from{transform:translateY(-40px);}
-    to{transform:translateY(80px);}
-}
-@keyframes lightMove2{
-    from{transform:translateY(60px);}
-    to{transform:translateY(-60px);}
-}
+@keyframes lightMove { from { transform: translateY(-40px); } to { transform: translateY(80px); } }
+@keyframes lightMove2 { from { transform: translateY(60px); } to { transform: translateY(-60px); } }
 
-/* login */
-.card{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    background:rgba(5,10,25,0.9);
-    padding:50px;
-    border-radius:20px;
-    box-shadow:0 0 60px rgba(0,150,255,0.4);
+/* Login Card */
+.card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(5, 12, 30, 0.95);
+    padding: 50px;
+    border-radius: 20px;
+    /* Borde sutil para dar definición */
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    box-shadow: 0 0 60px rgba(0, 150, 255, 0.3);
 }
 
-.title{
-    font-size:42px;
-    color:#7be7ff;
-    text-shadow:0 0 25px #00c8ff;
+.title {
+    font-size: 42px;
+    color: #7be7ff;
+    text-shadow: 0 0 15px rgba(0, 200, 255, 0.8);
+    margin-bottom: 10px;
 }
 
-.subtitle{
-    color:#d0f6ff;
-    margin-bottom:30px;
+.subtitle {
+    color: #8ae8ff;
+    opacity: 0.8;
+    margin-bottom: 30px;
 }
 
-input{
-    padding:15px;
-    width:260px;
-    font-size:18px;
-    border:none;
-    border-radius:12px;
-    text-align:center;
-    margin-bottom:20px;
-    background:#0b1328;
-    color:white;
-    outline:none;
-    box-shadow:0 0 10px #0044ff inset;
+/* Inputs con mejor contraste */
+input {
+    padding: 15px;
+    width: 260px;
+    font-size: 18px;
+    border: 1px solid #0044ff; /* Añadido borde sólido */
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+    background: #060b1a;
+    color: #fff;
+    outline: none;
+    box-shadow: 0 0 15px rgba(0, 68, 255, 0.4) inset;
+    transition: 0.3s;
 }
 
-.enter-btn{
-    padding:15px 40px;
-    font-size:18px;
-    border:none;
-    border-radius:40px;
-    background:linear-gradient(90deg,#0066ff,#00c8ff);
-    color:white;
-    cursor:pointer;
-    transition:0.25s;
+input:focus {
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.6) inset;
+    border-color: #00c8ff;
 }
 
-.enter-btn:hover{
-    transform:scale(1.1);
-    box-shadow:0 0 25px #00c8ff;
+.enter-btn {
+    padding: 15px 40px;
+    font-size: 18px;
+    border: none;
+    border-radius: 40px;
+    background: linear-gradient(90deg, #0055ff, #00a2ff);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-/* nombre central */
-#centerName{
-    position:fixed;
-    top:30%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:85px;
-    pointer-events:none;
+.enter-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px #00c8ff;
+    filter: brightness(1.2);
 }
 
-.speaker{
-    color:#8ae8ff;
-    text-shadow:0 0 15px #00c8ff, 0 0 40px #00c8ff;
-    animation:pulse 1s infinite alternate;
+/* Pantalla de juego / Nombre central */
+#centerName {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 70px; /* Un poco más pequeño para mejor composición */
+    pointer-events: none;
+    width: 100%;
 }
 
-.timer{
-    margin-left:25px;
-    font-size:70px;
-    color:#ff3434;
-    text-shadow:0 0 30px red;
+.speaker {
+    color: #fff;
+    text-shadow: 0 0 10px #00c8ff, 0 0 30px #00c8ff;
+    animation: pulse 1.5s infinite alternate;
 }
 
-@keyframes pulse{
-    from{transform:scale(1);}
-    to{transform:scale(1.08);}
+.timer {
+    display: block;
+    margin-top: 10px;
+    font-size: 80px;
+    color: #ff3434;
+    text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
 }
 
-/* botones */
-#buttons{
-    position:fixed;
-    top:65%;
-    left:50%;
-    transform:translateX(-50%);
-    display:flex;
-    flex-wrap:wrap;
-    gap:25px;
-    justify-content:center;
+@keyframes pulse {
+    from { transform: scale(1); opacity: 0.9; }
+    to { transform: scale(1.05); opacity: 1; }
 }
 
-.btn{
-    width:210px;
-    height:90px;
-    font-size:24px;
-    border:none;
-    border-radius:22px;
-    color:white;
-    background:linear-gradient(145deg,#081027,#162a5a);
-    box-shadow:inset 0 0 20px rgba(0,150,255,0.4), 0 0 20px rgba(0,100,255,0.3);
-    transition:0.15s;
-    cursor:not-allowed;
-    position:relative;
-    overflow:hidden;
+/* Botones de acción */
+#buttons {
+    position: fixed;
+    top: 65%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 90%;
 }
 
-.btn:active{
-    transform:scale(0.92);
+.btn {
+    width: 200px;
+    height: 80px;
+    font-size: 20px;
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    border-radius: 15px;
+    color: #7be7ff;
+    background: linear-gradient(145deg, #0a1631, #122244);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: 0.2s;
+    cursor: not-allowed;
+    font-family: 'Orbitron', sans-serif;
 }
 
-.mine{
-    cursor:pointer;
-    box-shadow:inset 0 0 30px rgba(0,255,255,0.7), 0 0 35px rgba(0,200,255,0.8);
+.btn.mine {
+    cursor: pointer;
+    color: #fff;
+    border-color: #00c8ff;
+    background: linear-gradient(145deg, #0d1e4a, #1a3a8a);
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.4);
 }
 
-.green{
-    background:linear-gradient(145deg,#00ff88,#00ffaa) !important;
-    box-shadow:0 0 50px #00ff88 !important;
-    animation:activeGlow .4s infinite alternate;
+.btn.mine:hover {
+    background: linear-gradient(145deg, #1a3a8a, #0d1e4a);
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
 }
 
-@keyframes activeGlow{
-    from{filter:brightness(1);}
-    to{filter:brightness(1.6);}
+.green {
+    background: linear-gradient(145deg, #00ff88, #00cc6a) !important;
+    color: #000 !important;
+    font-weight: bold;
+    box-shadow: 0 0 40px #00ff88 !important;
+    animation: activeGlow .5s infinite alternate;
 }
 
-.disabled{
-    opacity:0.25;
+@keyframes activeGlow {
+    from { filter: brightness(1) drop-shadow(0 0 5px #00ff88); }
+    to { filter: brightness(1.4) drop-shadow(0 0 20px #00ff88); }
 }
 
-/* estrellas */
-.star{
-    position:absolute;
-    width:6px;
-    height:6px;
-    background:white;
-    border-radius:50%;
-    pointer-events:none;
-    animation:starFly 900ms forwards ease-out;
+.disabled {
+    opacity: 0.15;
 }
-
-@keyframes starFly{
-    0%{opacity:1; transform:translate(0,0) scale(1);}
-    100%{opacity:0; transform:translate(var(--x),var(--y)) scale(0.2);}
-}
-
-
