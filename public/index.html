@@ -8,18 +8,14 @@
 
 <body>
 
-<!-- luces de estudio -->
 <div class="overlay-bg"></div>
 
 <!-- LOGIN -->
 <div id="login" class="card">
-
     <h1 class="title">SUPER REALITY BATTLE</h1>
     <h2 class="subtitle">Participante, identifícate</h2>
-
     <input id="nameInput" placeholder="Nombre de concursante">
     <button class="enter-btn" onclick="enter()">ENTRAR AL ESCENARIO</button>
-
 </div>
 
 <!-- ESCENARIO -->
@@ -27,12 +23,36 @@
 
     <div class="stage">
 
+        <!-- TEMPORIZADOR DE FASE ABIERTA -->
+        <div id="openTimer" style="display:none;">
+            <div class="open-label">¡TIEMPO PARA PRESIONAR!</div>
+            <div id="openTimerVal" class="open-countdown">10</div>
+        </div>
+
         <h1 id="centerName">
             <span id="speaker" class="speaker"></span>
             <span id="timer" class="timer"></span>
         </h1>
 
+        <div id="phaseMessage" class="phase-message"></div>
+
         <div id="buttons"></div>
+
+        <!-- PANEL ADMIN -->
+        <div id="adminPanel" class="admin-panel">
+            <div class="admin-title">⚙ CONFIGURAR RONDA</div>
+            <div class="admin-row">
+                <label>Duración del turno (seg)</label>
+                <input type="number" id="turnDurationInput" value="15" min="1" max="300">
+            </div>
+            <div class="admin-row">
+                <label>Tiempo para presionar (seg)</label>
+                <input type="number" id="openDurationInput" value="10" min="1" max="60">
+            </div>
+            <button class="admin-btn save-btn" onclick="saveDurations()">GUARDAR</button>
+            <span id="savedMsg" class="saved-msg">✓ Guardado</span>
+            <button class="admin-btn start-btn" onclick="startOpen()">▶ INICIAR RONDA</button>
+        </div>
 
     </div>
 
