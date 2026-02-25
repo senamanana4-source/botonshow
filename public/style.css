@@ -1,134 +1,131 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&display=swap');
 
+/* --- CONFIGURACIÓN GLOBAL --- */
 body {
     margin: 0;
-    /* Un fondo más profundo para que el neón resalte */
-    background: radial-gradient(circle at 50% 20%, #000d08 0%, #000402 60%, #000000 100%);
+    padding: 0;
+    /* Fondo ultra oscuro con profundidad */
+    background: radial-gradient(circle at 50% 20%, #001a1a 0%, #000805 60%, #000000 100%);
     font-family: 'Orbitron', sans-serif;
-    /* CORRECCIÓN: Texto claro sobre fondo oscuro */
-    color: #e0f7ff; 
+    color: #e0f7ff; /* Texto claro por defecto */
     text-align: center;
-    overflow: hidden;
+    overflow: hidden; /* Evita el scroll global de la página */
     height: 100vh;
+    width: 100vw;
 }
 
-/* Iluminación ambiente mejorada */
+/* --- ILUMINACIÓN AMBIENTE (NEONES MOVIÉNDOSE) --- */
 .overlay-bg {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
 }
 
 .overlay-bg::before,
 .overlay-bg::after {
     content: "";
     position: absolute;
-    width: 600px;
-    height: 600px;
+    width: 500px;
+    height: 500px;
     border-radius: 50%;
-    filter: blur(150px);
-    opacity: 0.12; /* Un poco más sutil para no lavar los colores */
+    filter: blur(120px);
+    opacity: 0.15;
 }
 
 .overlay-bg::before {
     background: #00d0ff;
-    left: -150px;
+    left: -100px;
     top: 10%;
     animation: lightMove 10s infinite alternate ease-in-out;
 }
 
 .overlay-bg::after {
     background: #0044ff;
-    right: -150px;
+    right: -100px;
     top: 40%;
     animation: lightMove2 12s infinite alternate ease-in-out;
 }
 
-@keyframes lightMove { from { transform: translateY(-40px); } to { transform: translateY(80px); } }
-@keyframes lightMove2 { from { transform: translateY(60px); } to { transform: translateY(-60px); } }
+@keyframes lightMove { from { transform: translateY(-50px); } to { transform: translateY(100px); } }
+@keyframes lightMove2 { from { transform: translateY(100px); } to { transform: translateY(-100px); } }
 
-/* Login Card */
+/* --- CARD DE LOGIN --- */
 .card {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(5, 12, 30, 0.95);
-    padding: 50px;
+    padding: 40px;
     border-radius: 20px;
-    /* Borde sutil para dar definición */
-    border: 1px solid rgba(0, 200, 255, 0.2);
-    box-shadow: 0 0 60px rgba(0, 150, 255, 0.3);
+    border: 1px solid rgba(0, 200, 255, 0.3);
+    box-shadow: 0 0 50px rgba(0, 150, 255, 0.2);
+    z-index: 100;
 }
 
 .title {
-    font-size: 42px;
+    font-size: 36px;
     color: #7be7ff;
-    text-shadow: 0 0 15px rgba(0, 200, 255, 0.8);
+    text-shadow: 0 0 15px #00c8ff;
     margin-bottom: 10px;
 }
 
 .subtitle {
     color: #8ae8ff;
-    opacity: 0.8;
-    margin-bottom: 30px;
+    opacity: 0.7;
+    margin-bottom: 25px;
+    font-size: 14px;
 }
 
-/* Inputs con mejor contraste */
+/* --- FORMULARIO --- */
 input {
     padding: 15px;
-    width: 260px;
-    font-size: 18px;
-    border: 1px solid #0044ff; /* Añadido borde sólido */
-    border-radius: 12px;
+    width: 250px;
+    font-size: 16px;
+    border: 1px solid #0044ff;
+    border-radius: 10px;
     text-align: center;
     margin-bottom: 20px;
     background: #060b1a;
-    color: #fff;
+    color: white;
     outline: none;
-    box-shadow: 0 0 15px rgba(0, 68, 255, 0.4) inset;
-    transition: 0.3s;
-}
-
-input:focus {
-    box-shadow: 0 0 20px rgba(0, 200, 255, 0.6) inset;
-    border-color: #00c8ff;
+    box-shadow: 0 0 10px rgba(0, 68, 255, 0.5) inset;
 }
 
 .enter-btn {
-    padding: 15px 40px;
+    padding: 12px 35px;
     font-size: 18px;
     border: none;
-    border-radius: 40px;
-    background: linear-gradient(90deg, #0055ff, #00a2ff);
+    border-radius: 30px;
+    background: linear-gradient(90deg, #0066ff, #00c8ff);
     color: white;
-    font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    font-family: 'Orbitron';
 }
 
 .enter-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 30px #00c8ff;
-    filter: brightness(1.2);
+    box-shadow: 0 0 25px #00c8ff;
 }
 
-/* Pantalla de juego / Nombre central */
+/* --- ELEMENTOS DEL JUEGO (NOMBRE Y TIMER) --- */
 #centerName {
     position: fixed;
-    top: 25%;
+    top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 70px; /* Un poco más pequeño para mejor composición */
-    pointer-events: none;
     width: 100%;
+    pointer-events: none;
+    z-index: 10;
 }
 
 .speaker {
+    font-size: 60px;
     color: #fff;
     text-shadow: 0 0 10px #00c8ff, 0 0 30px #00c8ff;
     animation: pulse 1.5s infinite alternate;
@@ -136,70 +133,100 @@ input:focus {
 
 .timer {
     display: block;
-    margin-top: 10px;
     font-size: 80px;
     color: #ff3434;
-    text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+    text-shadow: 0 0 20px #ff0000;
 }
 
 @keyframes pulse {
-    from { transform: scale(1); opacity: 0.9; }
-    to { transform: scale(1.05); opacity: 1; }
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
 }
 
-/* Botones de acción */
+/* --- CONTENEDOR DE BOTONES (OTROS PARTICIPANTES) --- */
 #buttons {
     position: fixed;
-    top: 65%;
+    top: 55%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 15px;
     justify-content: center;
     width: 90%;
+    max-height: 40vh; /* Para que no se salgan de la pantalla */
+    overflow-y: auto; /* Permite scroll si hay muchos jugadores */
+    padding: 20px;
+    z-index: 20;
 }
 
+/* Estilo para el scrollbar de los botones */
+#buttons::-webkit-scrollbar { width: 5px; }
+#buttons::-webkit-scrollbar-thumb { background: #00c8ff; border-radius: 10px; }
+
+/* --- BOTONES DE JUGADORES --- */
 .btn {
-    width: 200px;
-    height: 80px;
-    font-size: 20px;
-    border: 1px solid rgba(0, 150, 255, 0.3);
-    border-radius: 15px;
-    color: #7be7ff;
-    background: linear-gradient(145deg, #0a1631, #122244);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    transition: 0.2s;
+    width: 160px;
+    height: 70px;
+    font-size: 16px;
+    border: 1px solid rgba(0, 150, 255, 0.2);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.4); /* Otros jugadores se ven más tenues */
+    background: rgba(10, 20, 45, 0.6);
+    transition: all 0.2s ease;
     cursor: not-allowed;
-    font-family: 'Orbitron', sans-serif;
+    position: relative;
+    font-family: 'Orbitron';
 }
 
+/* --- TU BOTÓN (EL ACTIVO) --- */
 .btn.mine {
     cursor: pointer;
     color: #fff;
-    border-color: #00c8ff;
-    background: linear-gradient(145deg, #0d1e4a, #1a3a8a);
-    box-shadow: 0 0 20px rgba(0, 200, 255, 0.4);
+    border: 1px solid #00c8ff;
+    background: linear-gradient(145deg, #0d1e4a, #162a5a);
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.4);
+    opacity: 1; /* Siempre visible */
 }
 
 .btn.mine:hover {
-    background: linear-gradient(145deg, #1a3a8a, #0d1e4a);
+    transform: translateY(-3px);
     box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
 }
 
+/* --- ESTADO GANADOR / ACTIVO --- */
 .green {
-    background: linear-gradient(145deg, #00ff88, #00cc6a) !important;
+    background: linear-gradient(145deg, #00ff88, #00ffaa) !important;
     color: #000 !important;
-    font-weight: bold;
+    font-weight: 900;
     box-shadow: 0 0 40px #00ff88 !important;
-    animation: activeGlow .5s infinite alternate;
+    animation: activeGlow .4s infinite alternate;
 }
 
 @keyframes activeGlow {
-    from { filter: brightness(1) drop-shadow(0 0 5px #00ff88); }
-    to { filter: brightness(1.4) drop-shadow(0 0 20px #00ff88); }
+    from { filter: brightness(1); }
+    to { filter: brightness(1.4); }
 }
 
+/* --- ESTADO DESACTIVADO --- */
 .disabled {
-    opacity: 0.15;
+    opacity: 0.3; /* Aumentado de 0.15 para que se vean un poco más */
+    filter: grayscale(0.8);
+}
+
+/* --- EFECTO DE ESTRELLAS/PARTÍCULAS --- */
+.star {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #00c8ff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    animation: starFly 0.9s forwards ease-out;
+}
+
+@keyframes starFly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(0.2); }
 }
