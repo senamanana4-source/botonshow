@@ -1,85 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>SUPER REALITY BATTLE</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Show</title>
 </head>
-
 <body>
-
-<div class="overlay-bg"></div>
-
-<!-- LOGIN -->
-<div id="login" class="card">
-    <h1 class="title">SUPER REALITY BATTLE</h1>
-    <h2 class="subtitle">Participante, identifícate</h2>
-    <input id="nameInput" placeholder="Nombre de concursante">
-    <button class="enter-btn" onclick="enter()">ENTRAR AL ESCENARIO</button>
-</div>
-
-<!-- ESCENARIO -->
-<div id="main" style="display:none;">
-
-    <div class="stage">
-
-        <!-- TEMPORIZADOR DE FASE ABIERTA -->
-        <div id="openTimer" style="display:none;">
-            <div class="open-label">¡TIEMPO PARA PRESIONAR!</div>
-            <div id="openTimerVal" class="open-countdown">10</div>
-        </div>
-
-        <h1 id="centerName">
-            <span id="speaker" class="speaker"></span>
-            <span id="timer" class="timer"></span>
-        </h1>
-
-        <div id="starterDisplay" class="starter-display"></div>
-
-        <div id="phaseMessage" class="phase-message"></div>
-
-        <!-- CONTENEDOR DE OPCIONES -->
-        <div id="optionsContainer" class="options-container">
-            <div class="options-title">ELIGE TU RESPUESTA</div>
-            <div class="options-grid">
-                <button class="option-btn" onclick="selectOption('A')">
-                    <span class="option-letter">A</span>
-                </button>
-                <button class="option-btn" onclick="selectOption('B')">
-                    <span class="option-letter">B</span>
-                </button>
-                <button class="option-btn" onclick="selectOption('C')">
-                    <span class="option-letter">C</span>
-                </button>
-                <button class="option-btn" onclick="selectOption('D')">
-                    <span class="option-letter">D</span>
-                </button>
-            </div>
-        </div>
-
-        <div id="buttons"></div>
-
-        <!-- PANEL ADMIN -->
-        <div id="adminPanel" class="admin-panel">
-            <div class="admin-title">⚙ CONFIGURAR RONDA</div>
-            <div class="admin-row">
-                <label>Duración del turno (seg)</label>
-                <input type="number" id="turnDurationInput" value="15" min="1" max="300">
-            </div>
-            <div class="admin-row">
-                <label>Tiempo para presionar (seg)</label>
-                <input type="number" id="openDurationInput" value="10" min="1" max="60">
-            </div>
-            <button class="admin-btn save-btn" onclick="saveDurations()">GUARDAR</button>
-            <span id="savedMsg" class="saved-msg">✓ Guardado</span>
-            <button class="admin-btn start-btn" onclick="startOpen()">▶ INICIAR RONDA</button>
-        </div>
-
+    <div id="options-container">
+        <button id="verdadero">Verdadero</button>
+        <button id="falso">Falso</button>
     </div>
-
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="client.js"></script>
 </body>
 </html>
