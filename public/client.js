@@ -57,6 +57,13 @@ socket.on("usersUpdate", (users)=>{
         if(name === username){
             btn.classList.add("mine");
             btn.onclick = press;
+            // Desactivar activación por teclado (Enter, Espacio)
+            btn.onkeydown = (e) => {
+                if(e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    return false;
+                }
+            };
         } else {
             btn.classList.add("disabled");
         }
