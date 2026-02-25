@@ -42,29 +42,24 @@
         <div id="optionsContainer" class="options-container">
             <div class="options-title">ELIGE TU RESPUESTA</div>
             <div class="options-grid">
-                <button class="option-btn" onclick="selectLetter('A')" id="opt-A">
+                <button class="option-btn" onclick="selectOption('A')">
                     <span class="option-letter">A</span>
                 </button>
-                <button class="option-btn" onclick="selectLetter('B')" id="opt-B">
+                <button class="option-btn" onclick="selectOption('B')">
                     <span class="option-letter">B</span>
                 </button>
-                <button class="option-btn" onclick="selectLetter('C')" id="opt-C">
+                <button class="option-btn" onclick="selectOption('C')">
                     <span class="option-letter">C</span>
                 </button>
-                <button class="option-btn" onclick="selectLetter('D')" id="opt-D">
+                <button class="option-btn" onclick="selectOption('D')">
                     <span class="option-letter">D</span>
                 </button>
             </div>
-
-            <div class="tf-grid">
-                <button class="tf-btn" onclick="selectTruth('V')" id="tf-V">Verdadero</button>
-                <button class="tf-btn" onclick="selectTruth('F')" id="tf-F">Falso</button>
-            </div>
-            <div class="options-hint">Primero elige A/B/C/D, luego confirma Verdadero o Falso</div>
         </div>
 
         <div id="buttons"></div>
 
+        <!-- PANEL ADMIN -->
         <div id="adminPanel" class="admin-panel">
             <div class="admin-title">⚙ CONFIGURAR RONDA</div>
             <div class="admin-row">
