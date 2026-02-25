@@ -1,27 +1,30 @@
-// server.js
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, 'public')));
+const io = new Server(server, {
+    cors: { origin: "*" }
+});
 
-let users = {}; // socket.id -> username
-let userPressCount = {}; // username -> count
-let userAnswers = {}; // username -> readable answer string
-let waitingQueue = []; // [{ id, username }]
-let activeUser = null; // username
+app.use(express.static(path.join(__dirname, "public")));
+
+let users = {};
+let userPressCount = {}; // Contador de pulsaciones por usuario
+let activeUser = null;
+let waitingQueue = [];
 let countdownInterval = null;
 let remainingTime = 0;
-
-let gamePhase = "waiting"; // "waiting", "open", "turn"
-let customDuration = 15; // turn duration (segundos)
-let openDuration = 10; // open press duration (segundos)
+let gamePhase = "waiting"; // "waiting" | "countdown" | "open" | "turn"
+let openCountdown = 0;
 let openCountdownInterval = null;
+let customDuration = 15;
+let openDuration = 10;
+let roundStarter = null; // Quién inició la ronda
+let userAnswers = {}; // Guardar respuestas de cada usuario
 
 function broadcastUsers(){
     io.emit("usersUpdate", Object.values(users));
@@ -35,15 +38,35 @@ function broadcastAnswers(){
     io.emit("answersUpdate", userAnswers);
 }
 
+function startOpenPhase(initiator){
+    gamePhase = "open";
+    roundStarter = initiator;
+    openCountdown = openDuration;
+    userPressCount = {}; // Resetear contadores
+    userAnswers = {}; // Resetear respuestas
+    io.emit("openPhase", { time: openCountdown, starter: initiator });
+
+    openCountdownInterval = setInterval(()=>{
+        openCountdown--;
+        io.emit("openCountdown", openCountdown);
+        if(openCountdown <= 0){
+            clearInterval(openCountdownInterval);
+            openCountdownInterval = null;
+            gamePhase = "waiting";
+            io.emit("openEnded");
+        }
+    }, 1000);
+}
+
 function startTurn(username){
     activeUser = username;
     remainingTime = customDuration;
     gamePhase = "turn";
+    userAnswers = {}; // Resetear respuestas para nuevo turno
 
     io.emit("turnStarted", { user: activeUser, time: remainingTime });
-    io.emit("showOptions", { player: activeUser });
+    io.emit("showOptions", { player: activeUser }); // Mostrar opciones al jugador actual
 
-    if (countdownInterval) clearInterval(countdownInterval);
     countdownInterval = setInterval(()=>{
         remainingTime--;
         io.emit("countdown", remainingTime);
@@ -55,10 +78,7 @@ function startTurn(username){
 
             if(waitingQueue.length > 0){
                 const next = waitingQueue.shift();
-                // start next turn for next.username
-                startTurn(next.username);
-                // emit lock for new active
-                io.emit("lockButtons", { active: next.username });
+                io.to(next.id).emit("autoPress");
             } else {
                 gamePhase = "waiting";
                 io.emit("turnEnded");
@@ -67,132 +87,70 @@ function startTurn(username){
     }, 1000);
 }
 
-function startOpenPhase(starter = null){
-    if(openCountdownInterval) clearInterval(openCountdownInterval);
-    gamePhase = "open";
+io.on("connection", (socket)=>{
 
-    // reset states for the open phase
-    userPressCount = {};
-    userAnswers = {};
-    waitingQueue = [];
-    activeUser = null;
-
-    io.emit("openPhase", { starter: starter || '', time: openDuration });
-    let t = openDuration;
-    io.emit("openCountdown", t);
-    openCountdownInterval = setInterval(()=>{
-        t--;
-        io.emit("openCountdown", t);
-        if(t <= 0){
-            clearInterval(openCountdownInterval);
-            openCountdownInterval = null;
-            io.emit("openEnded");
-            gamePhase = "waiting";
-        }
-    }, 1000);
-}
-
-io.on('connection', (socket) => {
-    socket.on("join", (username) => {
-        if(!username) return;
-        socket.username = username;
+    socket.on("join", (username)=>{
         users[socket.id] = username;
-        if(!(username in userPressCount)) userPressCount[username] = 0;
-        if(!(username in userAnswers)) userAnswers[username] = "";
-
+        socket.username = username;
         socket.emit("gameState", { phase: gamePhase, customDuration, openDuration });
         broadcastUsers();
-        broadcastPressCount();
-        broadcastAnswers();
     });
 
-    // Nuevo comportamiento: solo el primer press se acepta (los demás son ignorados)
+    socket.on("setDurations", (data)=>{
+        if(gamePhase !== "waiting") return;
+        if(data.turnDuration && data.turnDuration > 0) customDuration = Math.min(data.turnDuration, 300);
+        if(data.openDuration && data.openDuration > 0) openDuration = Math.min(data.openDuration, 60);
+        io.emit("durationsUpdated", { customDuration, openDuration });
+    });
+
+    socket.on("startOpenPhase", ()=>{
+        if(gamePhase !== "waiting") return;
+        startOpenPhase(socket.username);
+    });
+
     socket.on("pressButton", ()=>{
-        if(!socket.username) return;
+        // Incrementar contador de pulsaciones
+        if(!userPressCount[socket.username]){
+            userPressCount[socket.username] = 0;
+        }
+        userPressCount[socket.username]++;
+        broadcastPressCount();
 
-        // Si no hay activeUser, este usuario gana el primer click
-        if(!activeUser){
-            // Incrementar solo para el primer que logró el click
-            userPressCount[socket.username] = (userPressCount[socket.username] || 0) + 1;
-            broadcastPressCount();
-
-            // Iniciar el turno para ese usuario
-            startTurn(socket.username);
-
-            // Bloquear botones inmediatamente en todos los clientes
-            io.emit("lockButtons", { active: socket.username });
-        } else {
-            // Ignorar presses posteriores mientras haya activeUser
-            socket.emit("pressIgnored", { reason: "Ya hay jugador activo" });
+        if(gamePhase === "open"){
+            if(!activeUser){
+                startTurn(socket.username);
+            } else {
+                waitingQueue.push({ id: socket.id, username: socket.username });
+            }
+        } else if(gamePhase === "turn"){
+            if(!activeUser){
+                startTurn(socket.username);
+            } else {
+                waitingQueue.push({ id: socket.id, username: socket.username });
+            }
         }
     });
 
     socket.on("selectOption", (data)=>{
-        // Guardar la opción seleccionada (solo si es el activeUser)
+        // Guardar la opción seleccionada
         if(socket.username === activeUser){
-            let opt, truth;
-            if(typeof data === 'string'){
-                opt = data;
-            } else if(typeof data === 'object'){
-                opt = data.option;
-                truth = data.truth; // 'V' o 'F'
-            }
-
-            let readable;
-            if(opt && truth){
-                readable = `${opt} - ${truth === 'V' ? 'Verdadero' : 'Falso'}`;
-            } else if(opt){
-                readable = `${opt}`;
-            } else {
-                readable = '';
-            }
-
-            userAnswers[socket.username] = readable;
+            userAnswers[socket.username] = data.option;
             broadcastAnswers();
-
-            // Opcional: terminar turno cuando el jugador confirma su opción
-            // Si quieres que el turno termine al elegir, descomenta lo siguiente:
-            /*
-            if(countdownInterval){
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            activeUser = null;
-            io.emit("turnEnded");
-            */
         }
-    });
-
-    socket.on("setDurations", (data)=>{
-        if(data.turnDuration && Number.isInteger(data.turnDuration) && data.turnDuration > 0) customDuration = data.turnDuration;
-        if(data.openDuration && Number.isInteger(data.openDuration) && data.openDuration > 0) openDuration = data.openDuration;
-        io.emit("gameState", { phase: gamePhase, customDuration, openDuration });
-    });
-
-    socket.on("startOpenPhase", ()=>{
-        const allUsers = Object.values(users);
-        const starter = allUsers.length ? allUsers[Math.floor(Math.random()*allUsers.length)] : '';
-        startOpenPhase(starter);
     });
 
     socket.on("disconnect", ()=>{
-        if(socket.username){
-            delete userPressCount[socket.username];
-            delete userAnswers[socket.username];
-        }
         delete users[socket.id];
         waitingQueue = waitingQueue.filter(u => u.id !== socket.id);
 
         if(socket.username === activeUser){
-            if(countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
+            clearInterval(countdownInterval);
+            countdownInterval = null;
             activeUser = null;
+
             if(waitingQueue.length > 0){
                 const next = waitingQueue.shift();
-                startTurn(next.username);
-                io.emit("lockButtons", { active: next.username });
+                io.to(next.id).emit("autoPress");
             } else {
                 gamePhase = "waiting";
                 io.emit("turnEnded");
@@ -200,10 +158,10 @@ io.on('connection', (socket) => {
         }
 
         broadcastUsers();
-        broadcastPressCount();
-        broadcastAnswers();
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, ()=> console.log(`Server listening on ${PORT}`));
+server.listen(PORT, "0.0.0.0", ()=>{
+    console.log("Servidor activo en puerto " + PORT);
+});
