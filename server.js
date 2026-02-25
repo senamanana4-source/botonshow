@@ -24,6 +24,7 @@ let openCountdownInterval = null;
 let customDuration = 15;
 let openDuration = 10;
 let roundStarter = null; // Quién inició la ronda
+let userAnswers = {}; // Guardar respuestas de cada usuario
 
 function broadcastUsers(){
     io.emit("usersUpdate", Object.values(users));
@@ -33,11 +34,16 @@ function broadcastPressCount(){
     io.emit("pressCountUpdate", userPressCount);
 }
 
+function broadcastAnswers(){
+    io.emit("answersUpdate", userAnswers);
+}
+
 function startOpenPhase(initiator){
     gamePhase = "open";
     roundStarter = initiator;
     openCountdown = openDuration;
     userPressCount = {}; // Resetear contadores
+    userAnswers = {}; // Resetear respuestas
     io.emit("openPhase", { time: openCountdown, starter: initiator });
 
     openCountdownInterval = setInterval(()=>{
@@ -56,8 +62,10 @@ function startTurn(username){
     activeUser = username;
     remainingTime = customDuration;
     gamePhase = "turn";
+    userAnswers = {}; // Resetear respuestas para nuevo turno
 
     io.emit("turnStarted", { user: activeUser, time: remainingTime });
+    io.emit("showOptions", { player: activeUser }); // Mostrar opciones al jugador actual
 
     countdownInterval = setInterval(()=>{
         remainingTime--;
@@ -120,6 +128,14 @@ io.on("connection", (socket)=>{
             } else {
                 waitingQueue.push({ id: socket.id, username: socket.username });
             }
+        }
+    });
+
+    socket.on("selectOption", (data)=>{
+        // Guardar la opción seleccionada
+        if(socket.username === activeUser){
+            userAnswers[socket.username] = data.option;
+            broadcastAnswers();
         }
     });
 
