@@ -1,13 +1,11 @@
-// public/client.js
 const socket = io();
 
 let username;
 let locked = false;
 let gamePhase = "waiting";
 let pressCount = {}; // Contadores de pulsaciones
-let userAnswers = {}; // Respuestas seleccionadas (readable strings)
+let userAnswers = {}; // Respuestas seleccionadas
 let roundStarter = null; // Quién inició la ronda
-let selectedLetter = null; // selección local antes de confirmar
 
 function enter(){
     username = document.getElementById("nameInput").value.trim();
@@ -19,10 +17,57 @@ function enter(){
 
 socket.on("gameState", (data)=>{
     gamePhase = data.phase;
-    if(document.getElementById("turnDurationInput")) document.getElementById("turnDurationInput").value = data.customDuration;
-    if(document.getElementById("openDurationInput")) document.getElementById("openDurationInput").value = data.openDuration;
+    document.getElementById("turnDurationInput").value = data.customDuration;
+    document.getElementById("openDurationInput").value = data.openDuration;
     updatePhaseUI();
 });
+
+socket.on("pressCountUpdate", (counts)=>{
+    pressCount = counts;
+    updateButtonsDisplay();
+});
+
+socket.on("answersUpdate", (answers)=>{
+    userAnswers = answers;
+    updateAnswersDisplay();
+});
+
+function updateAnswersDisplay(){
+    const buttons = document.getElementsByClassName("btn");
+    for(let btn of buttons){
+        const playerName = btn.getAttribute("data-name");
+        const answerSpan = btn.querySelector(".answer-display");
+        
+        if(answerSpan){
+            if(userAnswers[playerName]){
+                answerSpan.innerText = userAnswers[playerName];
+                answerSpan.style.display = "block";
+            } else {
+                answerSpan.style.display = "none";
+            }
+        }
+    }
+}
+
+function updateButtonsDisplay(){
+    const buttons = document.getElementsByClassName("btn");
+    for(let btn of buttons){
+        const playerName = btn.getAttribute("data-name");
+        let btnHTML = `<div class="player-name">${playerName}</div>`;
+        
+        if(pressCount[playerName]){
+            btnHTML += `<div class="press-count">${pressCount[playerName]}</div>`;
+        }
+
+        if(userAnswers[playerName]){
+            btnHTML += `<div class="answer-display">${userAnswers[playerName]}</div>`;
+        } else {
+            btnHTML += `<div class="answer-display" style="display:none;"></div>`;
+        }
+        
+        btn.innerHTML = btnHTML;
+    }
+}
 
 socket.on("usersUpdate", (users)=>{
     const container = document.getElementById("buttons");
@@ -32,7 +77,7 @@ socket.on("usersUpdate", (users)=>{
         const btn = document.createElement("button");
         btn.className = "btn";
         btn.setAttribute("data-name", name); // Guardar nombre en atributo
-
+        
         let btnHTML = `<div class="player-name">${name}</div>`;
         if(pressCount[name]){
             btnHTML += `<div class="press-count">${pressCount[name]}</div>`;
@@ -64,57 +109,47 @@ socket.on("usersUpdate", (users)=>{
     updatePhaseUI();
 });
 
-socket.on("pressCountUpdate", (counts)=>{
-    pressCount = counts || {};
-    updateButtonsDisplay();
-});
+function press(){
+    if(locked) return;
+    if(gamePhase !== "open" && gamePhase !== "turn") return;
 
-socket.on("answersUpdate", (answers)=>{
-    // Normalizar: si vienen como objetos {option, truth} convertir a string
-    userAnswers = answers || {};
-    for(const p in userAnswers){
-        const v = userAnswers[p];
-        if(typeof v === 'object' && v.option){
-            userAnswers[p] = v.truth ? `${v.option} - ${v.truth === 'V' ? 'Verdadero' : 'Falso'}` : `${v.option}`;
-        }
-    }
-    updateAnswersDisplay();
-});
+    const myButton = [...document.getElementsByClassName("mine")][0];
+    if(myButton) starExplosion(myButton);
 
-function updateButtonsDisplay(){
-    const buttons = document.getElementsByClassName("btn");
-    for(let btn of buttons){
-        const playerName = btn.getAttribute("data-name");
-        let btnHTML = `<div class="player-name">${playerName}</div>`;
-
-        if(pressCount[playerName]){
-            btnHTML += `<div class="press-count">${pressCount[playerName]}</div>`;
-        }
-
-        if(userAnswers[playerName]){
-            btnHTML += `<div class="answer-display">${userAnswers[playerName]}</div>`;
-        } else {
-            btnHTML += `<div class="answer-display" style="display:none;"></div>`;
-        }
-
-        btn.innerHTML = btnHTML;
-    }
+    socket.emit("pressButton");
 }
 
-function updateAnswersDisplay(){
-    const buttons = document.getElementsByClassName("btn");
-    for(let btn of buttons){
-        const playerName = btn.getAttribute("data-name");
-        const answerSpan = btn.querySelector(".answer-display");
+function updatePhaseUI(){
+    const adminPanel = document.getElementById("adminPanel");
+    const phaseMsg = document.getElementById("phaseMessage");
+    const myBtn = [...document.getElementsByClassName("mine")][0];
+    const starterDisplay = document.getElementById("starterDisplay");
 
-        if(answerSpan){
-            if(userAnswers[playerName]){
-                answerSpan.innerText = userAnswers[playerName];
-                answerSpan.style.display = "block";
-            } else {
-                answerSpan.style.display = "none";
-            }
+    if(gamePhase === "waiting"){
+        if(adminPanel) adminPanel.style.display = "flex";
+        if(starterDisplay) starterDisplay.style.display = "none";
+        if(phaseMsg){
+            phaseMsg.innerText = "Esperando para iniciar...";
+            phaseMsg.style.display = "block";
         }
+        locked = false;
+        if(myBtn){ myBtn.classList.remove("btn-open"); myBtn.style.opacity="0.5"; myBtn.style.cursor="not-allowed"; }
+        hideOptions();
+    } else if(gamePhase === "open"){
+        if(adminPanel) adminPanel.style.display = "none";
+        if(starterDisplay && roundStarter){
+            starterDisplay.innerText = `🎬 ${roundStarter}`;
+            starterDisplay.style.display = "block";
+        }
+        if(phaseMsg){ phaseMsg.innerText = "¡PRESIONA AHORA!"; phaseMsg.style.display = "block"; }
+        locked = false;
+        if(myBtn){ myBtn.classList.add("btn-open"); myBtn.style.opacity="1"; myBtn.style.cursor="pointer"; }
+        hideOptions();
+    } else if(gamePhase === "turn"){
+        if(adminPanel) adminPanel.style.display = "none";
+        if(starterDisplay) starterDisplay.style.display = "none";
+        if(phaseMsg){ phaseMsg.style.display = "none"; }
+        if(myBtn){ myBtn.classList.remove("btn-open"); }
     }
 }
 
@@ -125,17 +160,17 @@ socket.on("openPhase", (data)=>{
     userAnswers = {}; // Resetear respuestas
     document.getElementById("openTimer").style.display = "block";
     document.getElementById("openTimerVal").innerText = data.time;
-
+    
     // Mostrar starterDisplay por 5 segundos
     const starterDisplay = document.getElementById("starterDisplay");
-    if(starterDisplay && roundStarter){
+    if(starterDisplay){
         starterDisplay.innerText = `🎬 ${roundStarter}`;
         starterDisplay.style.display = "block";
         setTimeout(() => {
             if(gamePhase === "open") starterDisplay.style.display = "none";
         }, 5000);
     }
-
+    
     updatePhaseUI();
     updateButtonsDisplay();
 });
@@ -166,6 +201,28 @@ socket.on("turnStarted", (data)=>{
     updatePhaseUI();
 });
 
+socket.on("showOptions", (data)=>{
+    // Mostrar opciones si eres el jugador activo
+    if(username === data.player){
+        showOptions();
+    }
+});
+
+function showOptions(){
+    const optionsContainer = document.getElementById("optionsContainer");
+    if(optionsContainer) optionsContainer.style.display = "flex";
+}
+
+function hideOptions(){
+    const optionsContainer = document.getElementById("optionsContainer");
+    if(optionsContainer) optionsContainer.style.display = "none";
+}
+
+function selectOption(option){
+    socket.emit("selectOption", { option: option });
+    hideOptions();
+}
+
 socket.on("countdown", (time)=>{
     document.getElementById("timer").innerText = " " + time;
 });
@@ -185,70 +242,9 @@ socket.on("turnEnded", ()=>{
     hideOptions();
 });
 
-socket.on("showOptions", (data)=>{
-    // Mostrar opciones si eres el jugador activo
-    if(username === data.player){
-        showOptions();
-    }
-});
-
 socket.on("autoPress", ()=>{
     socket.emit("pressButton");
 });
-
-function press(){
-    if(locked) return;
-    if(gamePhase !== "open" && gamePhase !== "turn" && gamePhase !== "waiting") return;
-
-    const myButton = [...document.getElementsByClassName("mine")][0];
-    if(myButton) starExplosion(myButton);
-
-    socket.emit("pressButton");
-}
-
-function showOptions(){
-    const optionsContainer = document.getElementById("optionsContainer");
-    if(optionsContainer) {
-        // reset visual selection
-        selectedLetter = null;
-        ['opt-A','opt-B','opt-C','opt-D','tf-V','tf-F'].forEach(id=>{
-            const el = document.getElementById(id);
-            if(el) {
-                el.classList.remove('selected');
-            }
-        });
-        optionsContainer.style.display = "flex";
-    }
-}
-
-function hideOptions(){
-    const optionsContainer = document.getElementById("optionsContainer");
-    if(optionsContainer) optionsContainer.style.display = "none";
-}
-
-function selectLetter(letter){
-    selectedLetter = letter;
-    ['opt-A','opt-B','opt-C','opt-D'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.classList.toggle('selected', id === `opt-${letter}`);
-    });
-}
-
-function selectTruth(truth){
-    // truth: 'V' o 'F'
-    if(!selectedLetter){
-        // opcional: mostrar aviso
-        return;
-    }
-
-    ['tf-V','tf-F'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.classList.toggle('selected', id === (truth === 'V' ? 'tf-V' : 'tf-F'));
-    });
-
-    socket.emit("selectOption", { option: selectedLetter, truth: truth });
-    hideOptions();
-}
 
 /* --- CONTROL ADMIN --- */
 function saveDurations(){
@@ -284,39 +280,5 @@ function starExplosion(element){
 
         document.body.appendChild(star);
         setTimeout(()=> star.remove(), 900);
-    }
-}
-
-function updatePhaseUI(){
-    const adminPanel = document.getElementById("adminPanel");
-    const phaseMsg = document.getElementById("phaseMessage");
-    const myBtn = [...document.getElementsByClassName("mine")][0];
-    const starterDisplay = document.getElementById("starterDisplay");
-
-    if(gamePhase === "waiting"){
-        if(adminPanel) adminPanel.style.display = "flex";
-        if(starterDisplay) starterDisplay.style.display = "none";
-        if(phaseMsg){
-            phaseMsg.innerText = "Esperando para iniciar...";
-            phaseMsg.style.display = "block";
-        }
-        locked = false;
-        if(myBtn){ myBtn.classList.remove("btn-open"); myBtn.style.opacity="0.5"; myBtn.style.cursor="not-allowed"; }
-        hideOptions();
-    } else if(gamePhase === "open"){
-        if(adminPanel) adminPanel.style.display = "none";
-        if(starterDisplay && roundStarter){
-            starterDisplay.innerText = `🎬 ${roundStarter}`;
-            starterDisplay.style.display = "block";
-        }
-        if(phaseMsg){ phaseMsg.innerText = "¡PRESIONA AHORA!"; phaseMsg.style.display = "block"; }
-        locked = false;
-        if(myBtn){ myBtn.classList.add("btn-open"); myBtn.style.opacity="1"; myBtn.style.cursor="pointer"; }
-        hideOptions();
-    } else if(gamePhase === "turn"){
-        if(adminPanel) adminPanel.style.display = "none";
-        if(starterDisplay) starterDisplay.style.display = "none";
-        if(phaseMsg){ phaseMsg.style.display = "none"; }
-        if(myBtn){ myBtn.classList.remove("btn-open"); }
     }
 }
