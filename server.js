@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -13,18 +14,22 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, "public")));
 
 let users = {};
-let userPressCount = {}; // Contador de pulsaciones por usuario
+let userPressCount = {}; 
 let activeUser = null;
 let waitingQueue = [];
 let countdownInterval = null;
 let remainingTime = 0;
-let gamePhase = "waiting"; // "waiting" | "countdown" | "open" | "turn"
+let gamePhase = "waiting"; 
 let openCountdown = 0;
 let openCountdownInterval = null;
 let customDuration = 15;
 let openDuration = 10;
-let roundStarter = null; // Quién inició la ronda
-let userAnswers = {}; // Guardar respuestas de cada usuario
+let roundStarter = null; 
+let userAnswers = {}; 
+
+// Variables para control de empates (Ruleta)
+let tieTimeout = null;
+let tieCandidates = [];
 
 function broadcastUsers(){
     io.emit("usersUpdate", Object.values(users));
@@ -42,8 +47,11 @@ function startOpenPhase(initiator){
     gamePhase = "open";
     roundStarter = initiator;
     openCountdown = openDuration;
-    userPressCount = {}; // Resetear contadores
-    userAnswers = {}; // Resetear respuestas
+    userPressCount = {}; 
+    userAnswers = {}; 
+    tieCandidates = [];
+    if(tieTimeout) { clearTimeout(tieTimeout); tieTimeout = null; }
+
     io.emit("openPhase", { time: openCountdown, starter: initiator });
 
     openCountdownInterval = setInterval(()=>{
@@ -62,10 +70,10 @@ function startTurn(username){
     activeUser = username;
     remainingTime = customDuration;
     gamePhase = "turn";
-    userAnswers = {}; // Resetear respuestas para nuevo turno
+    userAnswers = {}; 
 
     io.emit("turnStarted", { user: activeUser, time: remainingTime });
-    io.emit("showOptions", { player: activeUser }); // Mostrar opciones al jugador actual
+    io.emit("showOptions", { player: activeUser }); 
 
     countdownInterval = setInterval(()=>{
         remainingTime--;
@@ -87,6 +95,30 @@ function startTurn(username){
     }, 1000);
 }
 
+function processTieBreaker() {
+    let candidates = [...tieCandidates];
+    tieCandidates = [];
+    tieTimeout = null;
+
+    if (openCountdownInterval) {
+        clearInterval(openCountdownInterval);
+        openCountdownInterval = null;
+        io.emit("openEnded");
+    }
+
+    if (candidates.length === 1) {
+        startTurn(candidates[0]);
+    } else if (candidates.length > 1) {
+        gamePhase = "roulette";
+        let winner = candidates[Math.floor(Math.random() * candidates.length)];
+        io.emit("startRoulette", { candidates, winner });
+        
+        setTimeout(() => {
+            startTurn(winner);
+        }, 4000);
+    }
+}
+
 io.on("connection", (socket)=>{
 
     socket.on("join", (username)=>{
@@ -97,7 +129,6 @@ io.on("connection", (socket)=>{
     });
 
     socket.on("setDurations", (data)=>{
-        if(gamePhase !== "waiting") return;
         if(data.turnDuration && data.turnDuration > 0) customDuration = Math.min(data.turnDuration, 300);
         if(data.openDuration && data.openDuration > 0) openDuration = Math.min(data.openDuration, 60);
         io.emit("durationsUpdated", { customDuration, openDuration });
@@ -109,22 +140,22 @@ io.on("connection", (socket)=>{
     });
 
     socket.on("pressButton", ()=>{
-        // Incrementar contador de pulsaciones
         if(!userPressCount[socket.username]){
             userPressCount[socket.username] = 0;
         }
         userPressCount[socket.username]++;
         broadcastPressCount();
 
-        if(gamePhase === "open"){
+        if(gamePhase === "open" || gamePhase === "turn"){
             if(!activeUser){
-                startTurn(socket.username);
-            } else {
-                waitingQueue.push({ id: socket.id, username: socket.username });
-            }
-        } else if(gamePhase === "turn"){
-            if(!activeUser){
-                startTurn(socket.username);
+                if (!tieCandidates.includes(socket.username)) {
+                    tieCandidates.push(socket.username);
+                }
+                if (!tieTimeout) {
+                    tieTimeout = setTimeout(() => {
+                        processTieBreaker();
+                    }, 400); // Ventana de 400ms para atrapar empates
+                }
             } else {
                 waitingQueue.push({ id: socket.id, username: socket.username });
             }
@@ -132,7 +163,6 @@ io.on("connection", (socket)=>{
     });
 
     socket.on("selectOption", (data)=>{
-        // Guardar la opción seleccionada
         if(socket.username === activeUser){
             userAnswers[socket.username] = data.option;
             broadcastAnswers();
@@ -156,7 +186,6 @@ io.on("connection", (socket)=>{
                 io.emit("turnEnded");
             }
         }
-
         broadcastUsers();
     });
 });
