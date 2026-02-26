@@ -1,11 +1,13 @@
+// client.js
 const socket = io();
 
 let username;
 let locked = false;
 let gamePhase = "waiting";
-let pressCount = {}; // Contadores de pulsaciones
-let userAnswers = {}; // Respuestas seleccionadas
-let roundStarter = null; // Quién inició la ronda
+let pressCount = {}; 
+let userAnswers = {}; 
+let roundStarter = null; 
+let rouletteInterval = null;
 
 function enter(){
     username = document.getElementById("nameInput").value.trim();
@@ -20,6 +22,11 @@ socket.on("gameState", (data)=>{
     document.getElementById("turnDurationInput").value = data.customDuration;
     document.getElementById("openDurationInput").value = data.openDuration;
     updatePhaseUI();
+});
+
+socket.on("durationsUpdated", (data)=>{
+    document.getElementById("turnDurationInput").value = data.customDuration;
+    document.getElementById("openDurationInput").value = data.openDuration;
 });
 
 socket.on("pressCountUpdate", (counts)=>{
@@ -76,7 +83,7 @@ socket.on("usersUpdate", (users)=>{
     users.forEach(name => {
         const btn = document.createElement("button");
         btn.className = "btn";
-        btn.setAttribute("data-name", name); // Guardar nombre en atributo
+        btn.setAttribute("data-name", name); 
         
         let btnHTML = `<div class="player-name">${name}</div>`;
         if(pressCount[name]){
@@ -92,7 +99,6 @@ socket.on("usersUpdate", (users)=>{
         if(name === username){
             btn.classList.add("mine");
             btn.onclick = press;
-            // Desactivar activación por teclado (Enter, Espacio)
             btn.onkeydown = (e) => {
                 if(e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -150,18 +156,50 @@ function updatePhaseUI(){
         if(starterDisplay) starterDisplay.style.display = "none";
         if(phaseMsg){ phaseMsg.style.display = "none"; }
         if(myBtn){ myBtn.classList.remove("btn-open"); }
+    } else if(gamePhase === "roulette"){
+        locked = true;
+        if(adminPanel) adminPanel.style.display = "none";
+        if(starterDisplay) starterDisplay.style.display = "none";
+        if(phaseMsg){ phaseMsg.style.display = "none"; }
+        if(myBtn){ myBtn.classList.remove("btn-open"); }
+        hideOptions();
     }
 }
+
+socket.on("startRoulette", (data) => {
+    gamePhase = "roulette";
+    updatePhaseUI();
+    document.getElementById("openTimer").style.display = "none";
+    
+    const modal = document.getElementById("rouletteModal");
+    const nameDisplay = document.getElementById("rouletteName");
+    modal.style.display = "flex";
+    nameDisplay.classList.remove("roulette-winner");
+
+    let index = 0;
+    rouletteInterval = setInterval(() => {
+        nameDisplay.innerText = data.candidates[index % data.candidates.length];
+        index++;
+    }, 100); 
+
+    setTimeout(() => {
+        clearInterval(rouletteInterval);
+        nameDisplay.innerText = data.winner;
+        nameDisplay.classList.add("roulette-winner");
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, 2000);
+    }, 2000); 
+});
 
 socket.on("openPhase", (data)=>{
     gamePhase = "open";
     roundStarter = data.starter;
-    pressCount = {}; // Resetear contadores
-    userAnswers = {}; // Resetear respuestas
+    pressCount = {}; 
+    userAnswers = {}; 
     document.getElementById("openTimer").style.display = "block";
     document.getElementById("openTimerVal").innerText = data.time;
     
-    // Mostrar starterDisplay por 5 segundos
     const starterDisplay = document.getElementById("starterDisplay");
     if(starterDisplay){
         starterDisplay.innerText = `🎬 ${roundStarter}`;
@@ -202,7 +240,6 @@ socket.on("turnStarted", (data)=>{
 });
 
 socket.on("showOptions", (data)=>{
-    // Mostrar opciones si eres el jugador activo
     if(username === data.player){
         showOptions();
     }
@@ -246,7 +283,6 @@ socket.on("autoPress", ()=>{
     socket.emit("pressButton");
 });
 
-/* --- CONTROL ADMIN --- */
 function saveDurations(){
     const turnDuration = parseInt(document.getElementById("turnDurationInput").value);
     const openDuration = parseInt(document.getElementById("openDurationInput").value);
@@ -260,7 +296,6 @@ function startOpen(){
     socket.emit("startOpenPhase");
 }
 
-/* --- ESTRELLAS --- */
 function starExplosion(element){
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width/2;
